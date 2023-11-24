@@ -15,4 +15,6 @@ ADD_FLEX_BISON_DEPENDENCY(MyLexer MyParser)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(parser main.c ${BISON_MyParser_OUTPUTS} ${FLEX_MyLexer_OUTPUTS})
+add_executable(parser main.c ${BISON_MyParser_OUTPUTS} ${FLEX_MyLexer_OUTPUTS}
+        ast.c
+        ast.h)

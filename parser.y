@@ -1,39 +1,26 @@
 %{
 #include <stdio.h>
+#include "stdbool.h"
 %}
-
+%union{
+          char *sval;
+          double dval;
+          int ival;
+          int bval;
+          struct AstNode *ast_node;
+}
 %%
 
-%token TOK_HEAT;
-%token STATE;
-%token TOK_TEMPERATURE;
-%token NUMBER;
-%token TOK_TARGET;
+%token TOKEN_FROM TOKEN_JOIN TOKEN_ON TOKEN_WHERE TOKEN_SELECT TOKEN_EQ_OP TOKEN_NE;
+%token STATE TOKEN_LE TOKEN_GE TOKEN_LT TOKEN_GT TOKEN_PAR_OPEN TOKEN_PAR_CLOSE TOKEN_OR;
+%token TOK_TEMPERATURE TOKEN_AND;
+%token NUMBER TOKEN_BOOLEAN;
+%token TOK_TARGET TOKEN_QUOTED_STRING TOKEN_DOUBLE TOKEN_INTEGER TOKEN_IDENTIFIER;
+
 
 commands: /* empty */
         | commands command
         ;
 
 command:
-        heat_switch
-        |
-        target_set
-        ;
-
-heat_switch:
-        TOK_HEAT STATE
-        {
-            if ($2) {
-                printf("\tОбогреватель включен\n");
-            } else {
-                printf("\tОбогреватель выключен\n");
-            }
-
-        };
-
-target_set:
-        TOK_TARGET TOK_TEMPERATURE NUMBER
-        {
-                printf("\tТемпература установлена на %d градусов\n", $3);
-        };
 %%
