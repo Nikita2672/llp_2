@@ -1,0 +1,9 @@
+insert into users values (20, "Nikita", true,  26.72, "Ivanov");
+from user in users where age == 20 && name == "Nikita" select user;
+update users set user.name = "Alexey";
+delete from table where (fieldString == "String" || (fieldInteger == 23 && fieldDouble == 2.71)) && (fieldBool == true);
+delete from table where name.a.Contains("nov");
+from invoice in invoiceCollection join invoiceType in invoiceTypeCollection
+    on invoice.invoiceTypeId equals invoiceType.id
+        where (invoiceType.description.Contains("accounting")) ||
+            (invoice.finInstitutionId == 1234 && (invoice.isPassed == true)) select invoice.startTime;
