@@ -1,5 +1,6 @@
 #include <malloc.h>
 #include <stdarg.h>
+#include <string.h>
 #include "ast.h"
 #include "stdio.h"
 
@@ -11,7 +12,31 @@ const char *getAstNodeTypeName(enum AstNodeType type) {
     }
 }
 
-static void print_ast_tree_recursive(struct AstNode *node, int depth) {
+AstNode *root = NULL;
+
+void setAstRoot( AstNode* node) {
+    root = node;
+}
+
+ AstNode* getRoot() {
+    return root;
+}
+
+char* removeFirstAndLastChar(const char *str) {
+    int len = strlen(str);
+    if (len <= 1) {
+        char* result = (char*)malloc(1);
+        result[0] = '\0';
+        return result;
+    } else {
+        char* result = (char*)malloc(len - 1);
+        strncpy(result, str + 1, len - 2);
+        result[len - 2] = '\0';
+        return result;
+    }
+}
+
+static void printAstTreeRecursive(AstNode *node, int depth) {
 
     if (node == NULL) {
         return;
@@ -22,16 +47,16 @@ static void print_ast_tree_recursive(struct AstNode *node, int depth) {
     }
 
     switch (node->type) {
-        case ANT_DOUBLE_LITERAL:
+        case DOUBLE_LITERAL:
             printf(": %f", node->value.double_val);
             break;
-        case ANT_INTEGER_LITERAL:
+        case INTEGER_LITERAL:
             printf(": %d", node->value.int_val);
             break;
-        case ANT_STRING_LITERAL:
-            printf(": \"%s\"", node->value.str_val);
+        case STRING_LITERAL:
+            printf(": \"%s\"", removeFirstAndLastChar(node->value.str_val));
             break;
-        case ANT_BOOLEAN_LITERAL:
+        case BOOLEAN_LITERAL:
             printf(": %s", node->value.bool_val ? "true" : "false");
         case FIELD_IDENTIFIER:
             printf (": %s", node->value.str_val);
@@ -44,12 +69,12 @@ static void print_ast_tree_recursive(struct AstNode *node, int depth) {
     printf("\n");
 
     for (int i = 0; i < node->num_children; ++i) {
-        print_ast_tree_recursive(node->children[i], depth + 1);
+        printAstTreeRecursive(node->children[i], depth + 1);
     }
 }
 
-struct AstNode *create_ast_node(enum AstNodeType type, int num_children, ...) {
-    struct AstNode *node = (struct AstNode *) malloc(sizeof(struct AstNode));
+ AstNode *createAstNode(enum AstNodeType type, int num_children, ...) {
+     AstNode *node = ( AstNode *) malloc(sizeof( AstNode));
     if (node == NULL) {
         fprintf(stderr, "Failed to allocate memory for AstNode\n");
         return NULL;
@@ -58,38 +83,36 @@ struct AstNode *create_ast_node(enum AstNodeType type, int num_children, ...) {
     node->type = type;
     node->num_children = num_children;
 
-    node->children = (struct AstNode **) malloc(num_children * sizeof(struct AstNode *));
+    node->children = ( AstNode **) malloc(num_children * sizeof( AstNode *));
     if (node->children == NULL) {
         fprintf(stderr, "Failed to allocate memory for AstNode children\n");
         return NULL;
     }
 
-    // Инициализация списка аргументов переменной длины
     va_list args;
     va_start(args, num_children);
 
-    // Заполнение массива дочерних узлов
     for (int i = 0; i < num_children; ++i) {
         node->children[i] = va_arg(args,
-                                   struct AstNode*);
+                                    AstNode*);
     }
 
-    // Установка значения в зависимости от типа узла
     switch (type) {
-        case ANT_DOUBLE_LITERAL:
+        case DOUBLE_LITERAL:
             node->value.double_val = va_arg(args, double);
             break;
-        case ANT_INTEGER_LITERAL:
+        case INTEGER_LITERAL:
             node->value.int_val = va_arg(args, int);
             break;
-        case ANT_STRING_LITERAL:
+        case STRING_LITERAL:
             node->value.str_val = va_arg(args, char*);
             break;
-        case ANT_BOOLEAN_LITERAL:
+        case BOOLEAN_LITERAL:
             node->value.bool_val = va_arg(args, int);
             break;
         case FIELD_IDENTIFIER:
             node->value.str_val = va_arg(args, char *);
+            break;
         default:
             break;
     }
@@ -100,6 +123,20 @@ struct AstNode *create_ast_node(enum AstNodeType type, int num_children, ...) {
 }
 
 
-void print_ast_tree(struct AstNode *root) {
-    print_ast_tree_recursive(root, 0);
+void printAstTree() {
+    printAstTreeRecursive(getRoot(), 0);
+}
+
+void freeAstNode(AstNode* node) {
+    if (!node) {
+        return;
+    }
+    for (int i = 0; i < node->num_children; ++i) {
+        freeAstNode(node->children[i]);
+    }
+    free(node);
+}
+
+void freeAstTree() {
+    freeAstNode(getRoot());
 }
